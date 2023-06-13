@@ -1,11 +1,11 @@
 import requests
 import re
 from . import *
-import time
+from datetime import datetime
 
 def download_pdf(url, chunk_size = 2000):
     r = requests.get(url, stream=True)
-    file_name = time.clock_gettime_ns()
+    file_name = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
     pdf_path = os.path.join(pdfs_dir, file_name)
     with open(pdf_path, 'wb') as fd:
         for chunk in r.iter_content(chunk_size):
