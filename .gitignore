@@ -1,7 +1,11 @@
 # custom
 *.log
 .vscode/
-bin/
+*.html
+*.bin
+*.pkl
+*.parquet
+.DS_Store
 # python
 # Byte-compiled / optimized / DLL files
 __pycache__/

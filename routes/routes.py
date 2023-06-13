@@ -4,6 +4,9 @@ from http import HTTPStatus
 from flask import request
 import os
 import openai
+from utils.chains import *
+from utils.openai_utils import *
+from utils.file_manager import *
 
 # create a route for webhook that accepts POST requests
 @app.route("/webhook", methods=["POST"])
@@ -23,19 +26,19 @@ def ping():
 def generate():
     # get prompt from request body
     prompt = request.json["prompt"]
-    gpt_request = {
-        "engine": "text-davinci-003",
-        "temperature": 0.2,
-        "max_tokens": 2000,
-        "top_p": 1,
-        "frequency_penalty": 0.0,
-        "presence_penalty": 0.0,
-        "prompt": prompt,
-    }
-    print("===========", os.getenv("OPENAPI"), "===========")
-    openai.api_key = os.getenv("OPENAPI")
-    response = openai.Completion.create(**gpt_request)
-    return response
+    gpt_response =  post_to_gpt(prompt)
+    # call extra processors if needed
+    return gpt_response
 
-
-    
+# create a route to obtain pdfs and a prompt
+@app.route("/generate_response_from_pdf", methods=["POST"])
+def generate_response_from_pdf():
+    # get prompt from request body
+    pdf_url = request.json["pdf_path"]
+    # download pdf from url
+    pdf_path = download_pdf(pdf_url)
+    prompt = request.json["prompt"]
+    generator = ContextBasedGenerator(pdf_path)
+    gpt_response = generator.generate_chain_response(prompt)
+    # call extra processors if needed
+    return gpt_response

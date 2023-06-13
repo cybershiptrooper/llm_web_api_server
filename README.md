@@ -11,3 +11,7 @@ pip install ir requirements.txt
 ```
 python main.py
 ```
+
+## running tests
+
+If you have pytest installed, you can simply run `pytest`. Else, you can use `python runtests.py`.

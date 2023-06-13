@@ -35,7 +35,9 @@ flask-log-request-id
 awscli
 fuzzywuzzy
 python-Levenshtein
-
+pytest
+pyMuPDF
+chromadb
 # ./sub_modules/promptrunner
 # ./sub_modules/occams
 
