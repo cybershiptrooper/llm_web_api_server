@@ -1,4 +1,5 @@
 # custom
+storage/pdfs/*.pdf
 *.log
 .vscode/
 *.html

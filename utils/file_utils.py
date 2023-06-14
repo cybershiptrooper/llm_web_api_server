@@ -6,7 +6,7 @@ from datetime import datetime
 def download_pdf(url, chunk_size = 2000):
   r = requests.get(url, stream=True)
   file_name = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
-  pdf_path = os.path.join(pdfs_dir, file_name)
+  pdf_path = os.path.join(pdfs_dir, file_name+".pdf")
   with open(pdf_path, 'wb') as fd:
       for chunk in r.iter_content(chunk_size):
           fd.write(chunk)
@@ -48,3 +48,8 @@ def html2pdf(html_string):
 
   response = requests.post(url, json=payload, headers=headers)
   return response.content
+
+def write_html(html_string):
+   file_name = datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".html"
+   with open(os.path.join(responses_dir, file_name), "w") as f:
+        f.write(html_string)
