@@ -124,28 +124,34 @@ def poll_html_to_pdf_conversion(polling_time_in_seconds, polling_url):
             return status_response_json
         time.sleep(polling_time_in_seconds)
 
-# def html2pdfNew(html_string):
-#   url = "https://yakpdf.p.rapidapi.com/pdf"
-
-#   payload = {
-#     "source": { "html": f"{html_string}" },
-#     "pdf": {
-#       "format": "A4",
-#       "scale": 1,
-#       "printBackground": True
-#     },
-#     "wait": {
-#       "for": "navigation",
-#       "waitUntil": "load",
-#       "timeout": 2500
-#     }
-#   }
-#   headers = {
-#     "content-type": "application/json",
-#     "x-api-key": "none",
-#     "X-RapidAPI-Key": "b4cd2bfc17msh566656031a54132p121277jsn1bb63ca95415",
-#     "X-RapidAPI-Host": "yakpdf.p.rapidapi.com"
-#   }
-
-#   response = requests.post(url, json=payload, headers=headers)
-#   return response.content
+def html2pdf_new(html_string):
+    upload_url_response = get_upload_url()
+    upload_url_response_json = json.loads(upload_url_response.content)
+    # print(upload_url_response.content)
+    # print(upload_url_response_json)
+    # Extract the value from the JSON response
+    #value = json_response.get('value')
+    # Return the extracted value
+    html_processed = replace_form_action(html_string, 'mailto:nikhilarora@adobe.com')
+    asset_id = upload_url_response_json.get('assetID')
+    uploadUri = upload_url_response_json.get('uploadUri')
+    # print(uploadUri)
+    upload_html_response = upload_html(uploadUri, html_processed)
+    print(upload_html_response.content)
+    # print("Printing asset ID next")
+    # print(asset_id)
+    download_url_response = get_download_url(asset_id)
+    download_url_response_json = json.loads(download_url_response.content)
+    downloadUri = download_url_response_json.get('downloadUri')
+    print("Printing downloadUri next")
+    print(downloadUri)
+    html_to_pdf_response = schedule_html_to_pdf_conversion(downloadUri)
+    html_to_pdf_response_headers = dict(html_to_pdf_response.headers)
+    print("html to pdf api response")
+    print(html_to_pdf_response.content)
+    print("Printing headers next")
+    print(html_to_pdf_response_headers)
+    poll_uri = html_to_pdf_response_headers.get('location')    
+    polling_response_json = poll_html_to_pdf_conversion(3, poll_uri)
+    
+    return polling_response_json

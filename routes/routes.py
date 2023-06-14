@@ -104,8 +104,8 @@ def get_url():
         return make_response("Error generating response", HTTPStatus.INTERNAL_SERVER_ERROR)
     return make_response(response.content, HTTPStatus.OK)
 
-@app.route("/get_document_from_html", methods=["GET"])
-def get_document_from_html():
+@app.route("/get_document_from_html_sample", methods=["GET"])
+def get_document_from_html_sample():
     # generate response
     try:
         upload_url_response = get_upload_url()
@@ -135,7 +135,7 @@ def get_document_from_html():
         print("Printing headers next")
         print(html_to_pdf_response_headers)
         poll_uri = html_to_pdf_response_headers.get('location')    
-        polling_response_json = poll_html_to_pdf_conversion(3, poll_uri)
+        polling_response_json = poll_html_to_pdf_conversion(1.5, poll_uri)
 
     except Exception as e:
         print(e)
