@@ -19,14 +19,14 @@ class ContextBasedGenerator:
         self.PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "prompt"]
         )
-        self.llm = OpenAI(model_name="text-davinci-003", max_tokens=3600, temperature=0.0)
+        self.llm = OpenAI(model_name="text-davinci-003", max_tokens=3500, temperature=0.0)
         self.chain = LLMChain(llm=self.llm, prompt=self.PROMPT)
         self.db = self.generate_db_from_pdf(pdf_path)
     
     def generate_db_from_pdf(self, pdf_path):
         loader = PyMuPDFLoader(pdf_path)
         document = loader.load()
-        text_splitter = SentenceTransformersTokenTextSplitter(chunk_size=512, chunk_overlap=50)
+        text_splitter = SentenceTransformersTokenTextSplitter(chunk_size=1024, chunk_overlap=50)
         texts = text_splitter.split_documents(document)
 
         vectordb = Chroma.from_documents(documents=texts, 
