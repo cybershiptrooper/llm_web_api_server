@@ -10,7 +10,7 @@ from langchain.chains.summarize import load_summarize_chain
 from . import *
 
 class ContextBasedGenerator:
-    def __init__(self, pdf_path) -> None:
+    def __init__(self, pdf_paths) -> None:
         prompt_template = """You are a document creator that creates html files based on prompts and context, which shall provide details required for the job. The output should be a valid and visually pleasing html. You may include css in the html script. Now create a document based on the context and prompt given below:
         Context: {context}
         Prompt: {prompt}
@@ -21,14 +21,16 @@ class ContextBasedGenerator:
         )
         self.llm = OpenAI(model_name="text-davinci-003", max_tokens=3500, temperature=0.0)
         self.chain = LLMChain(llm=self.llm, prompt=self.PROMPT)
-        self.db = self.generate_db_from_pdf(pdf_path)
+        self.db = self.generate_db_from_pdf(pdf_paths)
     
-    def generate_db_from_pdf(self, pdf_path):
-        loader = PyMuPDFLoader(pdf_path)
-        document = loader.load()
-        text_splitter = SentenceTransformersTokenTextSplitter(chunk_size=1024, chunk_overlap=50)
-        texts = text_splitter.split_documents(document)
-
+    def generate_db_from_pdf(self, pdf_paths):
+        texts = []
+        for pdf_path in pdf_paths:
+            loader = PyMuPDFLoader(pdf_path)
+            document = loader.load()
+            text_splitter = SentenceTransformersTokenTextSplitter(chunk_size=1024, chunk_overlap=50)
+            texts+=text_splitter.split_documents(document)
+        self.max_search_len = len(texts)
         vectordb = Chroma.from_documents(documents=texts, 
                                         embedding=OpenAIEmbeddings(),
                                         persist_directory=db_dir)
@@ -36,8 +38,9 @@ class ContextBasedGenerator:
         return vectordb
 
     def generate_chain_response(self, prompt):
+        # TODO: optimize this
         docs = self.db.max_marginal_relevance_search(
-                  ' ', k=10, lambda_mult=0.0) # get the top x documents based mostly on diversity
+                  ' ', k=min(10, self.max_search_len), lambda_mult=0.0) # get the top x documents based mostly on diversity
         # strings = self.db.get()["documents"]
         # docs = [Document(page_content=string) for string in strings]
         # summarize_chain = load_summarize_chain(self.llm, chain_type="map_reduce")

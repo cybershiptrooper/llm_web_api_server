@@ -1,5 +1,6 @@
 from .application import app
-from flask import render_template, Response, send_from_directory, make_response
+from flask import render_template, Response, send_from_directory, make_response, redirect
+import flask
 from http import HTTPStatus
 from flask import request
 import os
