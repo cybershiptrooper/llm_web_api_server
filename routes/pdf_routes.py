@@ -6,28 +6,6 @@ def cvt_html_to_pdf():
     pdf = html2pdf(html_string)
     return make_response(pdf, HTTPStatus.OK)
 
-# @app.route("/get_pdf_from_pdf", methods=["POST"])
-# def get_pdf_from_pdf():
-#     # get prompt from request body
-#     prompt = request.form["prompt"]
-    
-#     # download pdf from url
-#     # pdf_url = request.json["pdf_url"]
-#     # pdf_path = download_pdf(pdf_url)
-#     file = request.files['file']
-#     pdf_path = get_pdf_from_client(file)
-    
-#     # generate response
-#     try:
-#         gpt_response = get_gpt_response(prompt, pdf_path)
-#     except Exception as e:
-#         print(e)
-#         return make_response("Error generating response", HTTPStatus.INTERNAL_SERVER_ERROR)
-#     write_html(gpt_response)
-#     # call extra processors if needed
-#     pdf = html2pdf(gpt_response)
-#     return make_response(pdf, HTTPStatus.OK)
-
 @app.route("/generate_pdf_from_prompt", methods=["POST"])
 def generate_pdf_response_from_prompt():
     # get prompt from request body
@@ -61,7 +39,7 @@ def generate_pdf_response_from_multiple_pdf():
 
     # generate response
     try:
-        gpt_response = get_gpt_response(prompt, pdf_paths[0])
+        gpt_response = get_gpt_response(prompt, pdf_paths)
     except Exception as e:
         # TODO: add support for multiple pdfs
         print(e)
