@@ -19,6 +19,7 @@ def generate_html_response_from_prompt():
     prompt = f"You are a document creator that creates html files based on prompts. The output should be a valid html. You may include css in the html script. Now create a document for the user prompt: {prompt} \n"
     gpt_response =  post_to_gpt(prompt)
     # call extra processors if needed
+    gpt_response["choices"][0]["text"] = process_html(gpt_response["choices"][0]["text"])
     return gpt_response
 
 @app.route("/generate_html_from_pdf", methods=["POST"])
@@ -46,7 +47,7 @@ def generate_html_response():
     # generate response
     try:
         print(pdf_paths)
-        return make_response(get_gpt_response(prompt, pdf_paths), HTTPStatus.OK)
+        return make_response(process_html(get_gpt_response(prompt, pdf_paths)), HTTPStatus.OK)
     except Exception as e:
         print(e)
         return make_response("Error generating response", HTTPStatus.INTERNAL_SERVER_ERROR)

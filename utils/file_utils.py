@@ -4,6 +4,7 @@ from . import *
 from datetime import datetime
 import json
 import time
+from utils.openai_utils import post_to_dalle_parallel
 
 client_id="b25781a590c344109846b56bfedd6aff"
 token="eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2ODY4MDg0MTA4NDNfMjI2NDgyZDQtNmYwNy00NjFjLTg5NjgtNzU0ZjkyZjFjMDdlX3VlMSIsIm9yZyI6IkY3RTkxRUUwNjQ4OTY1RUMwQTQ5NUNEOEBBZG9iZU9yZyIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiJiMjU3ODFhNTkwYzM0NDEwOTg0NmI1NmJmZWRkNmFmZiIsInVzZXJfaWQiOiJGMDZCMUVEQTY0ODk2NjMzMEE0OTVGQURAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJGMDZCMUVEQTY0ODk2NjMzMEE0OTVGQURAdGVjaGFjY3QuYWRvYmUuY29tIiwiY3RwIjozLCJtb2kiOiJjMGNkYmM3NyIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjg2ODA4NDEwODQzIiwic2NvcGUiOiJvcGVuaWQsRENBUEksQWRvYmVJRCJ9.byBj7px5sWFxA42SRJMKzFwH-7c0SiHnhIGeAvvob9EYvZy9mDh2xnvXDJ9AMizCWPX9JGZOAs8ccqS7sU5_eMdLulJ8jKAPRy39zwJVToc2Wp2FYQTtEOcXQ8OAA8VKrqJD51f_2knQhPot6JETeW5-R0rvrH4FcCWlbVTmz1dcGNw9e9E2-VZfp1ff2PklOnvfBtuQmioLwX1ne_zn6P7DBuhLeDbci7g8GIZq-O9HwDjCIYnQb-d8MaeaLtpoE8jwxZC3Al-hkqhwcOJ5_QeJI2oktcfbdeA5FLATyohFM-S_DBE5P73J81gper-a6yiUnkYY0Q3HFmaJNzBg-g"
@@ -58,7 +59,8 @@ def write_html(html_string):
    file_name = datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".html"
    with open(os.path.join(responses_dir, file_name), "w") as f:
         f.write(html_string)
-
+   print("HTML written to file: ", file_name)
+   
 def get_upload_url():
   url = "https://pdf-services.adobe.io/assets"
   data = {
@@ -124,6 +126,11 @@ def poll_html_to_pdf_conversion(polling_time_in_seconds, polling_url):
             return status_response_json
         time.sleep(polling_time_in_seconds)
 
+def process_html(html_string):
+    html_processed = replace_form_action(html_string, 'mailto:nikhilarora@adobe.com')
+    html_processed = replace_image_in_html(html_processed)
+    return html_processed
+
 def html2pdf_new(html_string):
     upload_url_response = get_upload_url()
     upload_url_response_json = json.loads(upload_url_response.content)
@@ -132,11 +139,10 @@ def html2pdf_new(html_string):
     # Extract the value from the JSON response
     #value = json_response.get('value')
     # Return the extracted value
-    html_processed = replace_form_action(html_string, 'mailto:nikhilarora@adobe.com')
     asset_id = upload_url_response_json.get('assetID')
     uploadUri = upload_url_response_json.get('uploadUri')
     # print(uploadUri)
-    upload_html_response = upload_html(uploadUri, html_processed)
+    upload_html_response = upload_html(uploadUri, html_string)
     print(upload_html_response.content)
     # print("Printing asset ID next")
     # print(asset_id)
@@ -155,3 +161,51 @@ def html2pdf_new(html_string):
     polling_response_json = poll_html_to_pdf_conversion(3, poll_uri)
     
     return polling_response_json
+
+def find_alt_in_image_tag(img_tag):
+    # find alt tag using regex inside image tags <img >
+    pattern = r'alt\s*=\s*["\']([^"\']*)["\']'
+    alt_text = re.search(pattern, img_tag)
+    if alt_text is None:
+        return ""
+    return alt_text.group(1)
+
+def replace_image_in_html(html_string):
+    # find all image start(<) to end(>) indices using regex
+    pattern = r'<img\s+[^>]*>'
+    img_starts = [m.start() for m in re.finditer(pattern, html_string)]
+    img_ends = [m.end() for m in re.finditer(pattern, html_string)]
+    img_tags = [html_string[img_start:img_end] for img_start, img_end in zip(img_starts, img_ends)]
+
+    # find alt text for each image tag
+    alt_texts = []
+    for img_tag in img_tags:
+        alt_text = find_alt_in_image_tag(img_tag)
+        if(alt_text == ""):
+            print("!!!Removing image: alt not found")
+            img_tags.remove(img_tag)
+            continue
+        alt_texts.append(alt_text)
+
+    # send each element of alt_texts parallelly to dalle and store responses in post_responses
+    post_responses = post_to_dalle_parallel(alt_texts)
+    new_img_tags = []
+    for img_tag, dalle_response in zip(img_tags, post_responses):
+        # replace src with dalle response
+        #find src tag using regex inside image tags <img >
+        pattern = r'src\s*=\s*["\']([^"\']*)["\']'
+        src_text = re.search(pattern, img_tag)
+        src_start = src_text.start(1)
+        src_end = src_text.end(1)
+        if src_start == -1 or src_end == -1:
+           img_tags.remove(img_tag)
+           print("!!!Removing image: src not found")
+           continue
+        new_image_tag = img_tag[:src_start] + dalle_response + img_tag[src_end:]
+        new_img_tags.append(new_image_tag)
+
+    for old_img_tag, new_img_tag in zip(img_tags, new_img_tags):
+        # replace old image tag with new image tag
+        new_image_tag = f'<center>{new_image_tag}</center>'
+        html_string = html_string.replace(old_img_tag, new_img_tag)
+    return html_string

@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fitness Trainer Quiz</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    .question {
+      margin-bottom: 10px;
+    }
+    .answer {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fitness Trainer Quiz</h1>
+  <p>This quiz is designed to help you find the best fitness trainer for you.</p>
+  <form>
+    <div class="question">
+      <p>What is your current fitness level?</p>
+      <div class="answer">
+        <input type="radio" name="fitnessLevel" value="beginner" /> Beginner <br />
+        <input type="radio" name="fitnessLevel" value="intermediate" /> Intermediate <br />
+        <input type="radio" name="fitnessLevel" value="advanced" /> Advanced
+      </div>
+    </div>
+    <div class="question">
+      <p>What type of fitness goals do you have?</p>
+      <div class="answer">
+        <input type="radio" name="fitnessGoals" value="weightLoss" /> Weight Loss <br />
+        <input type="radio" name="fitnessGoals" value="strengthGain" /> Strength Gain <br />
+        <input type="radio" name="fitnessGoals" value="endurance" /> Endurance
+      </div>
+    </div>
+    <div class="question">
+      <p>What type of environment do you prefer?</p>
+      <div class="answer">
+        <input type="radio" name="environment" value="group" /> Group <br />
+        <input type="radio" name="environment" value="oneOnOne" /> One-on-one <br />
+        <input type="radio" name="environment" value="online" /> Online
+      </div>
+    </div>
+    <div class="question">
+      <p>What is your budget for a fitness trainer?</p>
+      <div class="answer">
+        <input type="radio" name="budget" value="low" /> Low <br />
+        <input type="radio" name="budget" value="medium" /> Medium <br />
+        <input type="radio" name="budget" value="high" /> High
+      </div>
+    </div>
+    <input type="submit" value="Submit" />
+  </form>
+</body>
+</html>

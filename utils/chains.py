@@ -11,7 +11,7 @@ from . import *
 
 class ContextBasedGenerator:
     def __init__(self, pdf_paths) -> None:
-        prompt_template = """You are a document creator that creates html files based on prompts and context, which shall provide details required for the job. The output should be a valid and visually pleasing html. You may include css in the html script. Now create a document based on the context and prompt given below:
+        prompt_template = """You are a document creator that creates html files based on prompts and context, which shall provide details required for the job. The output should be a valid and visually pleasing html. You may include css, and up to 2 images in the html script. The image "alt" tag will be used as description for an image generation model to generate an image. "src" tag should be an empty string and description should be in English. Now create a document based on the context and prompt given below:
         Context: {context}
         Prompt: {prompt}
         html:"""
@@ -19,7 +19,7 @@ class ContextBasedGenerator:
         self.PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "prompt"]
         )
-        self.llm = OpenAI(model_name="text-davinci-003", max_tokens=3500, temperature=0.0)
+        self.llm = OpenAI(model_name="text-davinci-003", max_tokens=3450, temperature=0.0)
         self.chain = LLMChain(llm=self.llm, prompt=self.PROMPT)
         self.db = self.generate_db_from_pdf(pdf_paths)
     
