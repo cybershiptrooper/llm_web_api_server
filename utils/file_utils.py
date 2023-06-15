@@ -206,6 +206,6 @@ def replace_image_in_html(html_string):
 
     for old_img_tag, new_img_tag in zip(img_tags, new_img_tags):
         # replace old image tag with new image tag
-        new_img_tag = f'<center>{new_image_tag}</center>'
+        new_img_tag = f'<center>{new_img_tag}</center>'
         html_string = html_string.replace(old_img_tag, new_img_tag)
     return html_string
