@@ -60,7 +60,7 @@ def write_html(html_string):
    with open(os.path.join(responses_dir, file_name), "w") as f:
         f.write(html_string)
    print("HTML written to file: ", file_name)
-   
+
 def get_upload_url():
   url = "https://pdf-services.adobe.io/assets"
   data = {
@@ -206,6 +206,6 @@ def replace_image_in_html(html_string):
 
     for old_img_tag, new_img_tag in zip(img_tags, new_img_tags):
         # replace old image tag with new image tag
-        new_image_tag = f'<center>{new_image_tag}</center>'
+        new_img_tag = f'<center>{new_image_tag}</center>'
         html_string = html_string.replace(old_img_tag, new_img_tag)
     return html_string
