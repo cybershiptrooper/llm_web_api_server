@@ -10,7 +10,7 @@ def cvt_html_to_pdf():
 def generate_pdf_response_from_prompt():
     # get prompt from request body
     prompt = request.json["prompt"]
-    prompt = f'You are a document creator that creates html files based on prompts. The output should be a valid html. You may include css, and up to 2 images in the html script. The image "alt" tag will be used as description for an image generation model to generate an image. "src" tag should be an empty string and description should be in English. Now create a document for the user prompt: {prompt} \n'
+    prompt = f'You are a document creator that creates html files based on prompts. The output should be a valid html. You may include css, and up to 2 images in the html script. The image "alt" tag will be used as description for an image generation model to generate an image: its "src" tag should be an empty string and description should be in English. Do not add images unless necessary. Now create a document for the user prompt: {prompt} \n'
     gpt_response =  post_to_gpt(prompt)
     # call extra processors if needed
     write_html(gpt_response["choices"][0]["text"])
@@ -52,7 +52,7 @@ def generate_pdf_response_from_multiple_pdf():
         return make_response("Error generating response", HTTPStatus.INTERNAL_SERVER_ERROR)
     # call extra processors if needed
     write_html(gpt_response)
-    html_processed = process_html(gpt_response["choices"][0]["text"])
+    html_processed = process_html(gpt_response)
     write_html(html_processed)
     pdf = html2pdf_new(gpt_response)
     return make_response(pdf, HTTPStatus.OK)
