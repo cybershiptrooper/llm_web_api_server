@@ -22,3 +22,11 @@ def test_replace_image_in_html():
     out_file = "storage/test_responses/test_replace_image_in_html_out.html"
     with open(out_file, "w") as f:
         f.write(html_processed)
+
+def test_html2pdf():
+    file = "storage/test_pdfs/test_image.html_str"
+    with open(file, "r") as f:
+        html_string = f.read()
+    html_processed = process_html(html_string)
+    pdf = html2pdf(html_processed)
+    print(pdf)

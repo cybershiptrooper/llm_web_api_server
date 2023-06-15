@@ -1,5 +1,6 @@
 # custom
 storage/pdfs/*.pdf
+storage/test_responses/*.pdf
 *.log
 .vscode/
 *.html

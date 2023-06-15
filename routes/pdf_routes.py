@@ -6,6 +6,13 @@ def cvt_html_to_pdf():
     pdf = html2pdf(html_string)
     return make_response(pdf, HTTPStatus.OK)
 
+@app.route("/pdfs/<path:path>")
+def serve_pdf(path):
+    print(path)
+    file_dir = os.path.dirname(__file__)
+    pdfs_dir = os.path.join(file_dir, "../storage/test_responses")
+    return send_from_directory(pdfs_dir, path)
+
 @app.route("/generate_pdf_from_prompt", methods=["POST"])
 def generate_pdf_response_from_prompt():
     # get prompt from request body
@@ -16,8 +23,13 @@ def generate_pdf_response_from_prompt():
     write_html(gpt_response["choices"][0]["text"])
     html_processed = process_html(gpt_response["choices"][0]["text"])
     write_html(html_processed)
-    pdf = html2pdf_new(html_processed)
-    return make_response(pdf, HTTPStatus.OK)
+    file_name = html2pdf(html_processed)
+    dict = {
+        "asset": {
+            "downloadUri" : f"{server}/pdfs/{file_name}",
+        }
+    }
+    return make_response(dict, HTTPStatus.OK)
 
 @app.route("/generate_pdf_from_pdf", methods=["POST"])
 def generate_pdf_response_from_multiple_pdf():
@@ -54,5 +66,10 @@ def generate_pdf_response_from_multiple_pdf():
     write_html(gpt_response)
     html_processed = process_html(gpt_response)
     write_html(html_processed)
-    pdf = html2pdf_new(gpt_response)
-    return make_response(pdf, HTTPStatus.OK)
+    file_name = html2pdf(html_processed)
+    dict = {
+        "asset": {
+            "downloadUri" : f"{server}/pdfs/{file_name}",
+        }
+    }
+    return make_response(dict, HTTPStatus.OK)

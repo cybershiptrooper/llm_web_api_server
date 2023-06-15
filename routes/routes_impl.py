@@ -8,6 +8,9 @@ import openai
 from utils.chains import *
 from utils.openai_utils import *
 from utils.file_utils import *
+from utils.legacy_file_utils import *
+
+server = "https://cbfd-2405-201-35-f061-dd7a-162b-c6d0-ff0c.ngrok-free.app"
 
 def get_pdf_from_client(file):
     if(file.filename.endswith(".pdf")):

@@ -24,11 +24,11 @@ def post_to_dalle(prompt):
     """
     dalle_request = {
         "prompt": prompt,
-        "num_return_sequences": 1,
+        "n": 1,
         "size": "256x256",
     }
-
-    return openai.Image.create(**dalle_request)[0]['url']
+    print(dalle_request)
+    return openai.Image.create(**dalle_request)['data'][0]['url']
 
 def post_to_dalle_dummy(prompts: list[str]) -> list[str]:
     return "https://www.w3schools.com/images/picture.jpg"
@@ -36,5 +36,5 @@ def post_to_dalle_dummy(prompts: list[str]) -> list[str]:
 def post_to_dalle_parallel(prompts: list[str]) -> list[str]:
     # use multithreading to call dalle api in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(post_to_dalle_dummy, prompts)
+        results = executor.map(post_to_dalle, prompts)
     return list(results)

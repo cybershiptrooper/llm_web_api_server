@@ -99,3 +99,17 @@ def get_document_from_html_sample():
         print(e)
         return make_response("Error generating response", HTTPStatus.INTERNAL_SERVER_ERROR)
     return make_response(polling_response_json, HTTPStatus.OK)
+
+@app.route("/get_document_from_pdf_sample", methods=["GET", "POST"])
+def get_document_from_pdf_sample():
+    file = "storage/test_pdfs/test_image.html_str"
+    with open(file, "r") as f:
+        html_string = f.read()
+    html_processed = process_html(html_string)
+    pdf_old = html2pdf(html_processed)
+    dict = {
+        "asset": {
+            "downloadUri" : f"{server}/pdfs/{pdf_old}",
+        }
+    }
+    return make_response(dict, HTTPStatus.OK)

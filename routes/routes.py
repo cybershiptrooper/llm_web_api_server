@@ -51,4 +51,3 @@ def generate_html_response():
     except Exception as e:
         print(e)
         return make_response("Error generating response", HTTPStatus.INTERNAL_SERVER_ERROR)
-
