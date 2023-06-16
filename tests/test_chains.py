@@ -30,3 +30,15 @@ def test_generate_db_from_pdf():
     print("Initialized generator: ", end-start)
     start = time.time()
     assert True
+
+def test_get_generic_results():
+    pdf_path = os.path.join(pdfs_dir, "CS_781_Project.pdf")
+    start = time.time()
+    generator = ContextBasedGenerator([pdf_path])
+    end = time.time()
+    print("Initialized generator: ", end-start)
+    start = time.time()
+    generator.get_generic_results()
+    end = time.time()
+    print("obtained response from gpt: ", end-start)
+    assert True

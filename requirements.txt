@@ -38,6 +38,7 @@ python-Levenshtein
 pytest
 pyMuPDF
 chromadb
+gensim
 # ./sub_modules/promptrunner
 # ./sub_modules/occams
 

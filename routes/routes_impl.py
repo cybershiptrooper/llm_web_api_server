@@ -11,7 +11,7 @@ from utils.file_utils import *
 from utils.legacy_file_utils import *
 
 server = "https://cbfd-2405-201-35-f061-dd7a-162b-c6d0-ff0c.ngrok-free.app"
-
+generator = ContextBasedGenerator()
 def get_pdf_from_client(file):
     if(file.filename.endswith(".pdf")):
         file_path = os.path.join("storage/pdfs",file.filename)
@@ -20,8 +20,8 @@ def get_pdf_from_client(file):
         raise Exception("File must be a pdf")
     return file_path
 
-def get_gpt_response(prompt, pdf_path):
-    generator = ContextBasedGenerator(pdf_path)
+def get_gpt_response(prompt, pdf_paths):
+    generator.generate_db_from_pdf(pdf_paths)
     print("Initialized generator")
     gpt_response = generator.generate_chain_response(prompt)
     print("obtained response from gpt")

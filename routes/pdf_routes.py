@@ -59,7 +59,6 @@ def generate_pdf_response_from_multiple_pdf():
     try:
         gpt_response = get_gpt_response(prompt, pdf_paths)
     except Exception as e:
-        # TODO: add support for multiple pdfs
         print(e)
         return make_response("Error generating response", HTTPStatus.INTERNAL_SERVER_ERROR)
     # call extra processors if needed
