@@ -11,11 +11,12 @@ from . import *
 from utils.nlp_trainers import LDATrainer
 
 class ContextBasedGenerator:
-    def __init__(self, pdf_paths=None) -> None:
-        prompt_template = """You are a document creator that creates html files based on prompts and context, which shall provide details required for the job. The output should be a valid and visually pleasing html. The content in the document generated must be standalone(i.e., it should only explicitly refer to another context or conversation). You may include css, and up to 2 images in the html script. The image "alt" tag will be used as description for an image generation model to generate an image. "src" tag should be an empty string and description should be in English. Now create a document based on the context and prompt given below:
+    def __init__(self, pdf_paths=None, k=5) -> None:
+        prompt_template = """You are a document creator that creates html files based on prompts and context, which shall provide details required for the job. The output should be a valid and visually pleasing html. The context is based on *people's* view on various topics: you must rephrase them as a new person's view. Do not copy it as-is. You may include css, and up to 2 images in the html script. The image "alt" tag will be used as description for an image generation model to generate an image. "src" tag should be an empty string and description should be in English. Add images only if necessary or asked by prompt. Now create a document based on the context and prompt given below:
         Context: {context}
         Prompt: {prompt}
         html:"""
+        self.k = 5
         # self.summary_chain = load_summarize_chain(llm, chain_type="map_reduce")
         self.PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "prompt"]
@@ -54,9 +55,9 @@ class ContextBasedGenerator:
         inputs = [{"context": doc.page_content, "prompt": prompt} for doc in docs]
         return self.chain.apply(inputs)
 
-    def get_top_k_documents(self, prompt, k=5):
+    def get_top_k_documents(self, prompt):
         assert self.db is not None, "Database not initialized"
-        
+        k = self.k
         prompt_result = self.db.similarity_search_with_score(prompt, k=k)
         
         docs = []
@@ -68,20 +69,20 @@ class ContextBasedGenerator:
         
         if(len(docs) < 1):
             print("No documents found with similarity score less than 0.5. Looking for generic results.")
-            docs = self.get_generic_results(k)
+            docs = self.get_generic_results()
         else:
             print("Found documents with similarity score less than 0.5: returning")
         
         return docs
     
-    def get_generic_results(self, k=5):
+    def get_generic_results(self):
         # TODO: optimize this
-        k=min(k, self.max_search_len)
+        k=min(self.k, self.max_search_len)
         # docs = self.db.max_marginal_relevance_search(
         #           ' ', k=k, lambda_mult=0.0)
         print("Creating prompts based on LDA keywords")
         text_list = [text.page_content for text in self.titles]
-        lda = LDATrainer(5, text_list, passes=10)
+        lda = LDATrainer(k, text_list, passes=10)
         smart_queries = lda.make_smart_queries()
         print("Queries: ", smart_queries, sep="\n")
         docs = []
