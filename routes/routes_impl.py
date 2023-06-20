@@ -24,6 +24,7 @@ def get_gpt_response(prompt, pdf_paths):
     generator.generate_db_from_pdf(pdf_paths)
     print("Initialized generator")
     gpt_response = generator.generate_chain_response(prompt)
-    print("obtained response from gpt")
-    # call extra processors if needed
-    return gpt_response[0]["text"]
+    print("obtained response from gpt ")
+    response_json = gpt_response.json()
+    print(response_json)
+    return response_json["choices"][0]["message"]["content"]

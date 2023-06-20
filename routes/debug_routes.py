@@ -113,3 +113,26 @@ def get_document_from_pdf_sample():
         }
     }
     return make_response(dict, HTTPStatus.OK)
+
+
+@app.route("/get_response_from_firefall", methods=["POST"])
+def get_response_from_firefall():
+    prompt_json = request.json
+    user_prompt = prompt_json.get('dialogue')
+    response = post_to_gpt_firefall(user_prompt)
+    response_json = response.json()
+    print(response.json)
+    html = response_json["generations"][0][0]["text"]
+    return make_response(html, HTTPStatus.OK)
+
+
+@app.route("/get_response_from_azure", methods=["POST"])
+def get_response_from_azure():
+    prompt_json = request.json
+    user_prompt = prompt_json.get('dialogue')
+    response = post_to_gpt_azure(user_prompt)
+    response_json = response.json()
+    print(response.json)
+    html = response_json["choices"][0]["message"]
+    return make_response(html, HTTPStatus.OK)
+    

@@ -9,6 +9,7 @@ from langchain.chains import LLMChain
 from langchain.chains.summarize import load_summarize_chain
 from . import *
 from utils.nlp_trainers import LDATrainer
+from utils.openai_utils import *
 
 class ContextBasedGenerator:
     def __init__(self, pdf_paths=None, k=5) -> None:
@@ -17,6 +18,7 @@ class ContextBasedGenerator:
         Prompt: {prompt}
         html:"""
         self.k = 5
+        self.prompt_template = prompt_template
         # self.summary_chain = load_summarize_chain(llm, chain_type="map_reduce")
         self.PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "prompt"]
@@ -52,8 +54,10 @@ class ContextBasedGenerator:
                 f.write(doc.page_content)
                 f.write("\n============")
         # raise Exception("stop")
-        inputs = [{"context": doc.page_content, "prompt": prompt} for doc in docs]
-        return self.chain.apply(inputs)
+        input_context = ""
+        for doc in docs: input_context += "\n" + doc.page_content
+        input = self.prompt_template.format(context = input_context, prompt = prompt)
+        return post_to_gpt_azure(input)
 
     def get_top_k_documents(self, prompt):
         assert self.db is not None, "Database not initialized"
