@@ -52,5 +52,11 @@ class LDATrainer:
         return self.get_most_similar_documents(processed_query)
     
     def make_smart_queries(self):
-        topic_data = [" ".join([self.dictionary[i] for i, _ in self.lda_model.get_topic_terms(j)]) for j in range(self.lda_model.num_topics)]
+        topic_data =[]
+        for j in range(self.lda_model.num_topics):
+            topic_query = ""
+            for i, _ in self.lda_model.get_topic_terms(j):
+                topic_query += " " + self.dictionary[i]
+            topic_query = topic_query.strip()
+            topic_data.append(topic_query)
         return topic_data

@@ -1,6 +1,7 @@
 from utils.chains import *
 from datetime import datetime
 from . import *
+from utils.chain_utils import *
 import time
 
 def test_generate_response_from_pdf():

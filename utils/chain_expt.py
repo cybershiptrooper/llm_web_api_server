@@ -4,28 +4,33 @@ from langchain.vectorstores import Chroma
 from langchain.text_splitter import SentenceTransformersTokenTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain.docstore.document import Document
-from langchain.llms import OpenAI, AzureOpenAI
+from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.chains.summarize import load_summarize_chain
 from . import *
 from utils.nlp_trainers import LDATrainer
-from utils.openai_utils import *
+import asyncio
 
 class ContextBasedGenerator:
     def __init__(self, pdf_paths=None, k=5) -> None:
-        prompt_template = """You are a document creator that creates html files based on prompts and context, which shall provide details required for the job. The output should be a valid and visually pleasing html. The context is based on *people's* view on various topics: you must rephrase them as a new person's view. Do not copy it as-is. You may include css, and up to 2 images in the html script. The image "alt" tag will be used as description for an image generation model to generate an image. "src" tag should be an empty string and description should be in English. Add images only if necessary or asked by prompt. Now create a document based on the context and prompt given below:
+        prompt_template = """You are a document creator that creates html sections based on prompts and context, which shall provide details required for the job. 
+        Context shall be provided in chunks: 'ctx number', 'total ctx' provide the current chunk number, and the total chunks to be recieved respectively. 'ctx summary' provides a short summary of all the context you are to recieve. This shall be useful for any part of the document that needs summarising. You need to create valid, logical and visually pleasing html sections that will be later combined inside <html></html> tags(externally provided) to form a complete html document. For ctx number = 1, you will need to add an introductory section before anything, and you must add a heading for the document. For ctx number = total ctx, you will need to add a conclusion section. Important: For all other ctx numbers, you cannot add these sections.
+        The context and the context summary are based on *people's* views on various topics: you must rephrase them as a new person's view. Do not copy them as-is. 
+        You may include css, and up to 1 image in the html script. The image "alt" tag will be used as description for an image generation model to generate an image. "src" tag should be an empty string and description should be in English. Add images only if necessary or asked by prompt. Now create a document based on the context and prompt given below:
         Context: {context}
         Prompt: {prompt}
+        ctx number: {context_number}
+        total ctx: {total_context}
+        ctx summary: {context_summary}
         html:"""
         self.k = 5
-        self.prompt_template = prompt_template
-        # self.summary_chain = load_summarize_chain(llm, chain_type="map_reduce")
         self.PROMPT = PromptTemplate(
-        template=prompt_template, input_variables=["context", "prompt"]
+        template=prompt_template, input_variables=
+            ["context", "prompt", "context_summary", "context_number", "total_context" ]
         )
-        self.llm = OpenAI(model_name="text-davinci-003", max_tokens=3450, temperature=0.0)
-        # self.llm = AzureOpenAI(model_name="gpt4", max_tokens=3450, temperature=0.0)
+        self.llm = OpenAI(model_name="text-davinci-003", max_tokens=2950, temperature=0.0)
         self.chain = LLMChain(llm=self.llm, prompt=self.PROMPT)
+        self.summary_chain = load_summarize_chain(self.llm, chain_type="map_reduce")
         self.text_splitter = SentenceTransformersTokenTextSplitter(chunk_size=1024, chunk_overlap=50)
         if(pdf_paths is not None):
             self.generate_db_from_pdf(pdf_paths)
@@ -37,8 +42,6 @@ class ContextBasedGenerator:
             loader = PyMuPDFLoader(pdf_path)
             document = loader.load()
             titles.append(document[0])
-            # print(document[0])
-            # for doc in document: texts.append(doc)
             texts+=self.text_splitter.split_documents(document)
         self.max_search_len = len(texts)
         self.texts = texts
@@ -55,17 +58,31 @@ class ContextBasedGenerator:
         with open("docs.log", "w") as f:
             for doc in docs:
                 f.write(doc.page_content)
-                f.write("\n============")
+                f.write("\n===========\n")
         # raise Exception("stop")
-        input_context = ""
-        for doc in docs: input_context += "\n" + doc.page_content
-        input = self.prompt_template.format(context = input_context, prompt = prompt)
-        return post_to_gpt_azure(input)
-        # inputs = [{"context": docs[0].page_content , "prompt": prompt}]
-        # doc = " ".join([doc.page_content for doc in docs])
-        # inputs = [{"context": doc, "prompt": prompt}]
-        # return self.chain.apply(inputs)
-        
+        print("Summarising documents")
+        summary = self.summary_chain.run(docs)
+        print("Summarised documents: ", summary, "========", sep="\n")
+        inputs = [
+            {
+                "context": doc.page_content, 
+                "prompt": prompt,
+                "context_summary": summary,
+                "context_number": idx,
+                "total_context": len(docs)
+            } 
+                  for doc, idx in zip(docs, range(1, len(docs)+1))]
+        gpt_response = self.chain.apply(inputs)
+        output = ""
+        with open("gpt.log", "w") as f:
+            for resp in gpt_response:
+                f.write(resp["text"])
+                f.write("\n============\n")
+                output += resp["text"]
+        output = [resp["text"] for resp in gpt_response]
+        output = "<html>\n" + "\n".join(output) + "\n</html>"
+        return output
+
     def get_top_k_documents(self, prompt):
         assert self.db is not None, "Database not initialized"
         k = self.k
@@ -89,11 +106,10 @@ class ContextBasedGenerator:
     def get_generic_results(self):
         # TODO: optimize this
         k=min(self.k, self.max_search_len)
-        print(k, "_______________")
         # docs = self.db.max_marginal_relevance_search(
         #           ' ', k=k, lambda_mult=0.0)
         print("Creating prompts based on LDA keywords")
-        text_list = [text.page_content for text in self.texts]
+        text_list = [text.page_content for text in self.titles]
         lda = LDATrainer(k, text_list, passes=10)
         smart_queries = lda.make_smart_queries()
         print("Queries: ", smart_queries, sep="\n")
@@ -104,8 +120,13 @@ class ContextBasedGenerator:
                 score = result[1]
                 if(score >= 0.5):
                     break
-                print("result: ", result[0], "============")
                 docs.append(result[0])
-                print("appended")
         print("returning generic results")
         return docs
+    
+    async def summarise(self, texts):
+        return await self.summary_chain.arun(texts)
+    
+    async def _generate_chain_response_from_inputs(self, inputs):
+        return await self.chain.aapply(inputs)
+    
