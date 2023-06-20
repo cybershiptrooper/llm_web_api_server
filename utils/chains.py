@@ -36,7 +36,9 @@ class ContextBasedGenerator:
             loader = PyMuPDFLoader(pdf_path)
             document = loader.load()
             titles.append(document[0])
-            texts+=self.text_splitter.split_documents(document)
+            # print(document[0])
+            for doc in document: texts.append(doc)
+            # texts+=self.text_splitter.split_documents(document)
         self.max_search_len = len(texts)
         self.texts = texts
         self.titles = titles
