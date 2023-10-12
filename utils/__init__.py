@@ -6,9 +6,9 @@ import os
 # import subprocess
 # import tempfile
 
-openai.api_key = "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"
-os.environ["OPENAI_API_KEY"] = "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"
-# os.environ["OPENAI_API_KEY"] = "b11e8b01c8b44b9db9482f8cd7b410d4"
+openai.api_key = "----"
+os.environ["OPENAI_API_KEY"] = "----"
+# os.environ["OPENAI_API_KEY"] = "----"
 # os.environ["OPENAI_API_VERSION"]="2023-03-15-preview"
 
 # file directories
