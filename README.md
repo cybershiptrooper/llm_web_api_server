@@ -1,9 +1,13 @@
+# How it works
+
+![working](https://i.imgur.com/c1Jswtl.png)
+
 ## setting up
 It is advised to use conda 
 ```
 conda create -n <env_name> python=3.9
 conda activate <env_name>
-pip install ir requirements.txt
+pip install -r requirements.txt
 ```
 
 ## running the code

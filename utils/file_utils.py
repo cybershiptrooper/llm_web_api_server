@@ -51,7 +51,7 @@ def html2pdf(html_string):
     headers = {
     "content-type": "application/json",
     "x-api-key": "none",
-    "X-RapidAPI-Key": "b4cd2bfc17msh566656031a54132p121277jsn1bb63ca95415",
+    "X-RapidAPI-Key": "<TOFILL>",
     "X-RapidAPI-Host": "yakpdf.p.rapidapi.com"
     }
 
@@ -63,7 +63,7 @@ def html2pdf(html_string):
     return file_name
 
 def process_html(html_string):
-    html_processed = replace_form_action(html_string, 'mailto:nikhilarora@adobe.com')
+    html_processed = replace_form_action(html_string, 'mailto:<TOFILL>')
     html_processed = replace_image_in_html(html_processed)
     return html_processed
 

@@ -73,7 +73,7 @@ def get_document_from_html_sample():
         # Extract the value from the JSON response
         #value = json_response.get('value')
         # Return the extracted value
-        html_string = replace_form_action(html_sample, 'mailto:nikhilarora@adobe.com')
+        html_string = replace_form_action(html_sample, 'mailto:<TOFILL>')
         asset_id = upload_url_response_json.get('assetID')
         uploadUri = upload_url_response_json.get('uploadUri')
         # print(uploadUri)
